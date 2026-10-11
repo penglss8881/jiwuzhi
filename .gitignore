@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.log
+test-results/
+playwright-report/
+react-backup-20261008/
+uploads/

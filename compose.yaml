@@ -1,0 +1,90 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-plssss}
+      MYSQL_USER: ${DB_USER:-bookapp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?请设置 DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  db-init:
+    build:
+      context: .
+      target: api
+    restart: "no"
+    environment: &api-environment
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-plssss}
+      DB_USER: ${DB_USER:-bookapp}
+      DB_PASSWORD: ${DB_PASSWORD:?请设置 DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY:?请设置 SECRET_KEY}
+      ADMIN_ACCOUNT: ${ADMIN_ACCOUNT:?请设置 ADMIN_ACCOUNT}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?请设置 ADMIN_PASSWORD}
+      ADMIN_NAME: ${ADMIN_NAME:-系统管理员}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["node", "scripts/bootstrap-db.js"]
+
+  api:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    environment:
+      <<: *api-environment
+      PORT: 3001
+      APP_ORIGIN: ${APP_ORIGIN:?请设置 APP_ORIGIN}
+      LOG_REQUESTS: ${LOG_REQUESTS:-0}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+
+  gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?请设置 SITE_ADDRESS}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+
+volumes:
+  mysql-data:
+  uploads:
+  caddy-data:
+  caddy-config:

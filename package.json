@@ -1,0 +1,40 @@
+{
+  "name": "jiwuzhi-community-marketplace",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev:api": "node server.js",
+    "dev": "vite",
+    "dev:all": "node scripts/dev-all.js",
+    "build": "vite build",
+    "lint": "eslint src --ext js,vue --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "test": "node --test tests/api.test.js",
+    "test:e2e": "playwright test",
+    "test:api": "node scripts/test-all-api.js",
+    "test:marketplace": "node --test tests/marketplace.integration.test.js",
+    "db:bootstrap": "node scripts/bootstrap-db.js"
+  },
+  "dependencies": {
+    "compression": "^1.8.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "lucide-vue-next": "^1.0.0",
+    "multer": "^2.4.0",
+    "mysql2": "^3.22.3",
+    "tesseract.js": "^6.0.1",
+    "vue": "^3.5.43",
+    "vue-router": "^4.6.4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "eslint": "^8.55.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "vite": "^5.0.8"
+  }
+}
