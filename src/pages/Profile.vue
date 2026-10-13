@@ -7,10 +7,15 @@ import { dateText } from '../utils.js'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import StatePanel from '../components/StatePanel.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 const { data: profile, loading, error, load } = useResource('/users/me', null, 0)
 const { busy, error: formError, run } = useAction()
 const form = ref({}), identity = ref(false), idForm = ref({ realName: '', idCard: '' })
-watch(profile, value => { if (value) form.value = { nickname: value.nickname, signature: value.signature, avatarUrl: value.avatarUrl, phone: value.phone, address: value.address } })
+watch(profile, value => {
+  if (!value) return
+  form.value = { nickname: value.nickname, signature: value.signature, avatarUrl: value.avatarUrl, phone: value.phone, address: value.address }
+  if (Number(value.userId) === Number(user.value?.userId)) setUser({ ...user.value, nickname: value.nickname, avatarUrl: value.avatarUrl })
+})
 async function save() { if (await run(() => send('/users/me/profile', form.value, 'PUT'), '个人资料已保存')) { setUser({ ...user.value, nickname: form.value.nickname, avatarUrl: form.value.avatarUrl }); load(true) } }
 async function pick(e) {
   const input = e.target, file = input.files[0]
@@ -52,10 +57,7 @@ async function unbind() { if (window.confirm('确认解除实名绑定？') && a
     <StatePanel :loading="loading" :error="error" @retry="load(true)" />
     <div v-if="profile && !loading && !error" class="profile-layout">
       <aside class="panel profile-card">
-        <div class="profile-avatar">
-          <img v-if="form.avatarUrl" :src="form.avatarUrl" alt="头像" />
-          <span v-else>{{ (form.nickname || profile.name || '书').slice(0, 1) }}</span>
-        </div>
+        <UserAvatar class="profile-avatar" :src="form.avatarUrl" :name="form.nickname || profile.name" alt="头像" />
         <h2>{{ form.nickname || profile.name }}</h2>
         <p class="muted">@{{ profile.accountNo }}</p>
         <span class="status-tag">{{ profile.isAdmin ? '平台管理员' : '集物志社区成员' }}</span>

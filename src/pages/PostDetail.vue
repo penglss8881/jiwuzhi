@@ -6,6 +6,7 @@ import { user } from '../store.js'
 import { dateText, goBack } from '../utils.js'
 import Comments from '../components/Comments.vue'
 import StatePanel from '../components/StatePanel.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 import Icon from '../components/Icon.vue'
 const route = useRoute(), router = useRouter()
 const { data: post, loading, error, load } = useResource(() => `/posts/${route.params.postId}`, null, 0)
@@ -27,7 +28,7 @@ async function toggleLike() {
     <template v-if="post && !loading && !error">
       <article class="panel post-detail">
         <div class="post-author">
-          <span class="avatar">{{ (post.author?.name || '用户').slice(0, 1) }}</span>
+          <UserAvatar :person="post.author" :user-id="post.authorId" />
           <div>
             <RouterLink :to="`/users/${post.authorId}`"><strong>{{ post.author?.name }}</strong></RouterLink>
             <small>{{ dateText(post.createdAt) }}</small>

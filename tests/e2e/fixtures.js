@@ -9,7 +9,7 @@ export async function mockApp(page, { admin = false, loggedIn = true, orderRole 
   const user = { ...account, isAdmin: admin }
   const requests = [], inventory = [], messages = [], comments = []
   const order = { requestId: 10, itemId: 1, itemTitle: items[0].title, price: 1, priceUnit: '元/件', expectDays: null, requestType: 'buyout', buyoutPrice: 36, status: 'pending', role: orderRole, phone: '13800000000', address: '校园图书馆', note: '', createdAt: '2026-10-08 11:00:00', requester: { userId: 1, name: '林间' }, owner: { userId: 2, name: '鹿鸣' }, ...orderState }
-  if (loggedIn) await page.addInitScript(value => localStorage.setItem('library_current_user', JSON.stringify(value)), user)
+  if (loggedIn) await page.addInitScript(value => { if (!localStorage.getItem('library_current_user')) localStorage.setItem('library_current_user', JSON.stringify(value)) }, user)
   await page.route('**/api/v1/**', async route => {
     const request = route.request(), url = new URL(request.url()), path = url.pathname.replace('/api/v1', ''), method = request.method()
     const body = request.postDataJSON?.() || {}
@@ -20,8 +20,9 @@ export async function mockApp(page, { admin = false, loggedIn = true, orderRole 
     if (path === '/users/forgot-question') return ok({ securityQuestion: '您的出生城市是？' })
     if (path === '/users/search') return ok(['鹿鸣', 'test2'].includes(url.searchParams.get('q')) ? [{ userId: 2, name: '鹿鸣', signature: '分享生活与好物', avatarUrl: '' }] : [])
     if (/^\/users\/\d+\/profile$/.test(path)) return ok({ userId: Number(path.split('/')[2]), name: Number(path.split('/')[2]) === 2 ? '鹿鸣' : '小满', signature: '分享生活与好物', avatarUrl: '' })
-    if (path === '/users/me') return ok({ ...user, signature: '喜欢阅读，也喜欢分享。', phone: '13800000000', address: '校园图书馆', avatarUrl: '', realName: '林间', idCard: '123456********1234', idCardBound: true, createdAt: '2026-01-01' })
-    if (path === '/users/me/profile' || path === '/users/me/password') return ok({ message: '已保存' })
+    if (path === '/users/me') return ok({ signature: '喜欢阅读，也喜欢分享。', phone: '13800000000', address: '校园图书馆', avatarUrl: '', realName: '林间', idCard: '123456********1234', idCardBound: true, createdAt: '2026-01-01', ...user })
+    if (path === '/users/me/profile') { Object.assign(user, body); return ok({ message: '已保存' }) }
+    if (path === '/users/me/password') return ok({ message: '已保存' })
     if (path === '/users') return ok([{ ...user, role: 'reader_admin', status: 'active' }, { userId: 2, name: '鹿鸣', accountNo: 'test2', role: 'user', status: 'active' }])
     if (path === '/posts' && method === 'GET') return ok(posts.filter(p => (!url.searchParams.get('authorId') || p.authorId === Number(url.searchParams.get('authorId'))) && (!url.searchParams.get('keyword') || p.title.includes(url.searchParams.get('keyword')))))
     if (path === '/posts' && method === 'POST') return ok({ postId: 8 })
@@ -48,6 +49,9 @@ export async function mockApp(page, { admin = false, loggedIn = true, orderRole 
     if (path.endsWith('/rent-requests')) { Object.assign(order, body, { requestType: body.type }); return ok({ requestId: 10, needPay: true }) }
     if (/^\/items\/\d+$/.test(path)) return ok(items.find(i => i.itemId === Number(path.split('/')[2])) || items[0])
     if (path.endsWith('/unread-count') || path.endsWith('/pending-count')) return ok({ total: 0 })
+    if (path === '/friends') return ok([])
+    if (path === '/friends/requests') return ok({ incoming: [], outgoing: [] })
+    if (path.startsWith('/friends/status/')) return ok({ status: 'none', requestId: null })
     if (path.endsWith('/mark-seen')) return ok({ ok: true })
     if (path === '/rent-requests/incoming' || path === '/rent-requests/outgoing') return ok([{ ...order, requesterName: order.requester.name, ownerName: order.owner.name, requester: undefined, owner: undefined }])
     if (path === '/rent-requests/10' && method === 'GET') return ok(order)

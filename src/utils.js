@@ -1,4 +1,11 @@
 export const categories = ['图书', '文具', '数码', '生活用品', '体育', '其他']
+// Uploaded files are served from the site root, including on nested profile routes.
+export function avatarUrl(value) {
+  const url = typeof value === 'string' ? value.trim() : ''
+  if (!url) return ''
+  if (/^(https?:\/\/|blob:|data:image\/)/i.test(url) || url.startsWith('/')) return url
+  return `/${url.replace(/^(\.\/)+/, '')}`
+}
 export const money = v => Number(v || 0).toLocaleString('zh-CN', { maximumFractionDigits: 2 })
 const chinaDate = value => {
   if (!value) return null

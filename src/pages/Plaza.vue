@@ -7,6 +7,7 @@ import Icon from '../components/Icon.vue'
 import ItemCard from '../components/ItemCard.vue'
 import StatePanel from '../components/StatePanel.vue'
 import Pagination from '../components/Pagination.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 const route = useRoute(), router = useRouter()
 const routeQuery = ref({ ...route.query })
 watch(() => route.query, value => { if (route.path === '/plaza') routeQuery.value = { ...value } })
@@ -28,18 +29,50 @@ const icons = ['book', 'pen', 'monitor', 'coffee', 'sport', 'box']
   <div class="focus-market-page">
     <div class="page-heading focus-market-heading">
       <div>
-        <div class="eyebrow">GOOD THINGS, SECOND STORIES</div>
+        <div class="eyebrow">02 / CAMPUS EXCHANGE</div>
         <h1>
           发现好物
           <span class="heading-dot">.</span>
         </h1>
-        <p>真实信息放在前面，帮你更快作出判断。</p>
+        <p>发现所需，也让闲置找到下一位主人。</p>
       </div>
       <RouterLink to="/warehouse?new=1" class="btn primary">
         <Icon name="plus" :size="18" />
         发布闲置
       </RouterLink>
     </div>
+    <section class="exchange-banner" aria-label="校园好物交换站">
+      <div class="exchange-copy">
+        <span class="exchange-kicker"><span aria-hidden="true"></span> GOOD THINGS, SECOND STORIES</span>
+        <h2>物尽其用，<br class="exchange-mobile-break" />故事继续<span>。</span></h2>
+        <p>从一本旧书，到一件心头好。<br />在校园里，让闲置与需要再次相遇。</p>
+        <div class="exchange-meta"><span>发现好物</span><i aria-hidden="true">/</i><span>连接同好</span><i aria-hidden="true">/</i><span>循环新生</span></div>
+      </div>
+      <div class="exchange-art" aria-hidden="true">
+        <span class="exchange-art-label">JIWUZHI COLLECTION</span>
+        <svg viewBox="0 0 320 220" fill="none">
+          <path d="M17 28H68M17 28V66M303 153V191H253" stroke="currentColor" stroke-width="1" opacity=".5" />
+          <path d="M55 155 158 209 271 146 170 95Z" fill="#1f2727" opacity=".12" />
+          <path d="m72 97 91 45 91-47v69l-91 47-91-45Z" fill="#202727" />
+          <path d="m163 142 91-47v69l-91 47Z" fill="#35403a" />
+          <path d="m72 97 91-47 91 45-91 47Z" fill="#596047" />
+          <path d="m93 101 58-29 32 16-58 31Z" fill="#e7e2bd" />
+          <path d="m100 96 13-58 47 16-12 58Z" fill="#1e2828" stroke="#f0e7ba" stroke-width="2" />
+          <path d="m113 38 5-5 48 16-6 5Z" fill="#f0e7ba" />
+          <path d="m119 52 28 9M115 64l27 9" stroke="#efd35c" stroke-width="2" />
+          <path d="m153 104 12-63 42 21-8 67Z" fill="#d7d4b7" stroke="#202727" stroke-width="2" />
+          <path d="m165 41 7-4 42 21-7 4Z" fill="#f4edd3" />
+          <path d="m181 66-7 35 15 7 5-35Z" fill="#515d4d" />
+          <path d="m163 142-25-24-89-44 23 23ZM163 142l22-23 92-46-23 22Z" fill="#eee5b5" stroke="#202727" stroke-width="1.5" />
+          <path d="m97 138 25 13M97 146l16 9" stroke="#efd35c" stroke-width="2" />
+          <path d="m210 144 22-11v20l-22 11Z" stroke="#c8cbb0" />
+          <path d="M236 25v24M224 37h24" stroke="#202727" stroke-width="2" />
+          <circle cx="64" cy="48" r="3" fill="#202727" />
+          <path d="M273 37h20M273 44h13M27 169h25" stroke="#202727" opacity=".45" />
+        </svg>
+        <span class="exchange-art-foot">RE:CIRCULATE <b>↗</b></span>
+      </div>
+    </section>
     <section class="market-toolbar panel focus-market-toolbar">
       <div class="focus-search-row">
         <form class="market-search" @submit.prevent="filter('keyword', keyword.trim())">
@@ -78,7 +111,7 @@ const icons = ['book', 'pen', 'monitor', 'coffee', 'sport', 'box']
       <p class="muted">按完整账号、昵称或名称精确匹配。点击用户进入主页，查看好物和动态。</p>
       <StatePanel :loading="peopleLoading" :error="peopleError" :empty="!people.length" :title="queryText ? '没有找到完全匹配的用户' : '想找谁？在上方输入账号或昵称'" description="昵称可能重复；知道对方账号时，使用完整账号更准确。" @retry="loadPeople(true)" />
       <RouterLink v-for="person in (!peopleLoading && !peopleError ? people : [])" :key="person.userId" :to="`/users/${person.userId}`" class="panel person-result">
-        <span class="avatar"><img v-if="person.avatarUrl" :src="person.avatarUrl" alt="" /><template v-else>{{ person.name.slice(0, 1) }}</template></span>
+        <UserAvatar :person="person" />
         <div><h2>{{ person.name }}</h2><small v-if="person.accountNo">账号 {{ person.accountNo }}</small><p>{{ person.signature || '来我的主页，看看好物与生活。' }}</p></div>
         <span class="text-btn push-right">查看主页 <Icon name="arrow" :size="18" /></span>
       </RouterLink>

@@ -7,6 +7,7 @@ import { user } from '../store.js'
 import { dateTimestamp, messageTime } from '../utils.js'
 import Icon from '../components/Icon.vue'
 import StatePanel from '../components/StatePanel.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 const route = useRoute(), convos = ref([]), active = ref(null), messages = ref([]), draft = ref(''), error = ref(''), loading = ref(true), messageLoading = ref(false), scroller = ref(null), search = ref('')
 const { busy, run } = useAction()
 const tab = ref('chats')
@@ -119,7 +120,7 @@ function keydown(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
           <StatePanel :loading="loading" :empty="!loading && !convos.length" title="还没有会话" description="在好物详情页联系物主，即可开始交流。" />
           <div v-for="c in filtered" :key="c.conversationId" class="conversation" :class="{ active: c.conversationId === active }">
             <button class="conversation-select" @click="select(c.conversationId)">
-              <span class="avatar">{{ (c.otherUser?.name || '用户').slice(0, 1) }}</span>
+              <UserAvatar :person="c.otherUser" />
               <span class="conversation-copy">
                 <strong>{{ c.otherUser?.name }}</strong>
                 <small>{{ c.lastMessage || '开始聊聊吧' }}</small>
@@ -137,7 +138,7 @@ function keydown(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
             <p v-if="!requests.data.value.incoming.length" class="friend-empty">暂时没有新的好友申请</p>
             <div v-for="r in requests.data.value.incoming" :key="r.requestId" class="friend-row">
               <RouterLink class="friend-person" :to="`/users/${r.user.userId}`">
-                <span class="avatar"><img v-if="r.user.avatarUrl" :src="r.user.avatarUrl" alt="" /><template v-else>{{ r.user.name.slice(0, 1) }}</template></span>
+                <UserAvatar :person="r.user" />
                 <span class="conversation-copy"><strong>{{ r.user.name }}</strong><small>{{ messageTime(r.createdAt) }} · 申请加你为好友</small></span>
               </RouterLink>
               <div class="friend-actions">
@@ -154,7 +155,7 @@ function keydown(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
             <p v-if="!friends.data.value.length" class="friend-empty">还没有好友，去 TA 的主页打个招呼吧</p>
             <div v-for="f in friends.data.value" :key="f.friendshipId" class="friend-row">
               <button type="button" class="friend-person" @click="openConversation(f.user.userId)">
-                <span class="avatar"><img v-if="f.user.avatarUrl" :src="f.user.avatarUrl" alt="" /><template v-else>{{ f.user.name.slice(0, 1) }}</template></span>
+                <UserAvatar :person="f.user" />
                 <span class="conversation-copy"><strong>{{ f.user.name }}</strong><small>{{ f.user.signature || '点击发消息' }}</small></span>
               </button>
               <div class="friend-actions">
@@ -168,7 +169,7 @@ function keydown(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
             <p v-if="!requests.data.value.outgoing.length" class="friend-empty">没有等待验证的申请</p>
             <div v-for="r in requests.data.value.outgoing" :key="r.requestId" class="friend-row">
               <RouterLink class="friend-person" :to="`/users/${r.user.userId}`">
-                <span class="avatar"><img v-if="r.user.avatarUrl" :src="r.user.avatarUrl" alt="" /><template v-else>{{ r.user.name.slice(0, 1) }}</template></span>
+                <UserAvatar :person="r.user" />
                 <span class="conversation-copy"><strong>{{ r.user.name }}</strong><small>{{ messageTime(r.createdAt) }} · 等待验证</small></span>
               </RouterLink>
               <div class="friend-actions">
@@ -184,7 +185,7 @@ function keydown(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
             <button class="icon-btn chat-back" aria-label="返回会话列表" @click="active = null">
               <Icon name="back" />
             </button>
-            <span class="avatar">{{ (selected.otherUser?.name || '用户').slice(0, 1) }}</span>
+            <UserAvatar :person="selected.otherUser" />
             <div>
               <RouterLink :to="`/users/${selected.otherUser?.userId}`"><strong>{{ selected.otherUser?.name }}</strong></RouterLink>
               <small>点击名字查看主页 · 友善沟通</small>
@@ -199,6 +200,7 @@ function keydown(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
             <div v-for="m in messages" :key="m.messageId" class="message" :class="{ mine: Number(m.senderId) === Number(user.userId), recalled: m.recalled }">
               <span v-if="m.recalled" class="recall-text">消息已撤回</span>
               <template v-else>
+                <UserAvatar class="message-avatar" :person="Number(m.senderId) === Number(user.userId) ? user : selected.otherUser" />
                 <small :title="String(m.createdAt)">{{ messageTime(m.createdAt) }}</small>
                 <div class="message-bubble">
                   <a v-if="m.msgType === 'image'" :href="m.fileUrl" target="_blank" rel="noopener">
@@ -240,3 +242,10 @@ function keydown(e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
     </div>
   </div>
 </template>
+
+<style scoped>
+.message:not(.recalled) { position: relative; padding-left: 46px; }
+.message.mine:not(.recalled) { padding-left: 0; padding-right: 46px; }
+.message-avatar { position: absolute; left: 0; top: 18px; width: 32px; height: 32px; }
+.mine .message-avatar { left: auto; right: 0; }
+</style>

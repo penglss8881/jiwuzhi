@@ -7,6 +7,7 @@ import { user } from '../store.js'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import StatePanel from '../components/StatePanel.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 import Pagination from '../components/Pagination.vue'
 import { recognizeImageText } from '../recognize-image.js'
 const keyword = ref(''), query = ref(''), sort = ref('latest'), page = ref(1), composing = ref(false), uploading = ref(false), ocrBusy = ref(false), ocrProgress = ref(0), ocrFile = ref(null)
@@ -118,7 +119,7 @@ async function toggleLike(post) { await run(async () => Object.assign(post, awai
           </form>
         </div>
         <button class="moment-launch" @click="compose">
-          <span class="avatar">{{ (user?.nickname || user?.name || '友').slice(0, 1) }}</span>
+          <UserAvatar :person="user" />
           <span class="moment-launch-copy">分享新鲜事、照片，或正在交易的好物…</span>
           <span class="moment-launch-photo"><Icon name="upload" :size="17" />照片</span>
         </button>
@@ -128,10 +129,7 @@ async function toggleLike(post) { await run(async () => Object.assign(post, awai
         <div v-if="!loading && !error" class="feed">
           <article v-for="post in visiblePosts" :key="post.postId" class="post-card">
             <div class="post-author">
-              <span class="avatar">
-                <img v-if="post.author?.avatarUrl" :src="post.author.avatarUrl" alt="" loading="lazy" />
-                <template v-else>{{ (post.author?.name || '用户').slice(0, 1) }}</template>
-              </span>
+              <UserAvatar :person="post.author" :user-id="post.authorId" />
               <div>
                 <RouterLink :to="`/users/${post.authorId}`"><strong>{{ post.author?.name || '用户' }}</strong></RouterLink>
                 <small>{{ dateText(post.createdAt) }} · 分享了新动态</small>
@@ -225,7 +223,7 @@ async function toggleLike(post) { await run(async () => Object.assign(post, awai
     </div>
     <Modal v-if="composing" title="分享此刻" :busy="busy || uploading || ocrBusy" @close="composing = false">
       <form class="form-stack" @submit.prevent="submit">
-        <div class="compose-self"><span class="avatar">{{ (user?.nickname || user?.name || '友').slice(0, 1) }}</span><strong>{{ user?.nickname || user?.name || '和朋友分享' }}</strong></div>
+        <div class="compose-self"><UserAvatar :person="user" /><strong>{{ user?.nickname || user?.name || '和朋友分享' }}</strong></div>
         <label class="moment-compose-label">
           <span class="sr-only">分享内容</span>
           <textarea v-model="form.content" rows="5" maxlength="5000" placeholder="此刻的心情、刚发现的好物，或者一张照片…" autofocus></textarea>

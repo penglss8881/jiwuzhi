@@ -115,6 +115,7 @@ test('profile saves only editable fields, never masked identity numbers', async 
 test('avatar upload previews and saves without leaving the profile page', async ({ page }) => {
   const { requests } = await mockApp(page)
   await page.route('**/uploads', route => route.fulfill({ json: { url: '/avatar-test.png' } }))
+  await page.route('**/avatar-test.png', route => route.fulfill({ contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a0v8AAAAASUVORK5CYII=', 'base64') }))
   await page.goto('/profile')
   await page.locator('.upload-control input[type=file]').setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a0v8AAAAASUVORK5CYII=', 'base64') })
   await expect(page).toHaveURL('/profile')

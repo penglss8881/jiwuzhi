@@ -4,6 +4,7 @@ import { useResource, useAction } from '../composables.js'
 import { send } from '../api.js'
 import { dateText } from '../utils.js'
 import StatePanel from './StatePanel.vue'
+import UserAvatar from './UserAvatar.vue'
 const props = defineProps({ endpoint: String })
 const { data, loading, error, load } = useResource(() => props.endpoint)
 const { busy, run } = useAction()
@@ -51,7 +52,7 @@ async function submit() {
     <StatePanel :loading="loading" :error="error" :empty="!data.length" title="成为第一个留言的人" description="关于这件物品，有什么想问卖家或提醒大家的？" @retry="load(true)" />
     <div v-for="comment in threads" :key="comment.commentId" class="comment-thread">
       <article class="comment">
-        <div class="avatar"><img v-if="comment.author?.avatarUrl" :src="comment.author.avatarUrl" alt="" /><template v-else>{{ (comment.author?.name || '用户').slice(0, 1) }}</template></div>
+        <UserAvatar :person="comment.author" />
         <div>
           <RouterLink class="comment-author" :to="`/users/${comment.author?.userId}`">{{ comment.author?.name || '用户' }}</RouterLink>
           <small>{{ dateText(comment.createdAt) }}</small>
@@ -61,7 +62,7 @@ async function submit() {
       </article>
       <div v-if="comment.replies.length" class="comment-replies">
         <article v-for="child in comment.replies" :key="child.commentId" class="comment">
-          <div class="avatar tiny"><img v-if="child.author?.avatarUrl" :src="child.author.avatarUrl" alt="" /><template v-else>{{ (child.author?.name || '用户').slice(0, 1) }}</template></div>
+          <UserAvatar class="tiny" :person="child.author" />
           <div>
             <RouterLink class="comment-author" :to="`/users/${child.author?.userId}`">{{ child.author?.name || '用户' }}</RouterLink>
             <RouterLink v-if="child.replyTo" class="reply-to" :to="`/users/${child.replyTo.userId}`">回复 @{{ child.replyTo.name }}</RouterLink>

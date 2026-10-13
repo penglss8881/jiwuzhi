@@ -5,6 +5,7 @@ import { useAction } from '../composables.js'
 import { money, messageTime } from '../utils.js'
 import Icon from './Icon.vue'
 import Cover from './Cover.vue'
+import UserAvatar from './UserAvatar.vue'
 const props = defineProps({ item: Object, badge: { type: String, default: '' } })
 const emit = defineEmits(['unfavorite'])
 const fav = ref(Boolean(props.item.favorited)), count = ref(props.item.favoriteCount || 0)
@@ -43,7 +44,7 @@ async function toggle() { await run(async () => { const result = await send(`${h
       </div>
       <div class="item-owner">
         <RouterLink :to="`/users/${item.ownerId}`" class="owner-profile-link">
-          <span class="avatar tiny"><img v-if="item.ownerAvatar" :src="item.ownerAvatar" alt="" /><template v-else>{{ ownerName.slice(0, 1) }}</template></span>
+          <UserAvatar class="tiny" :person="{ userId: item.ownerId, name: ownerName, avatarUrl: item.ownerAvatar }" />
           <span><strong>{{ ownerName }}</strong><small>卖家发布</small></span>
         </RouterLink>
         <span class="push-right objective-owner-note"><Icon name="shield" :size="14" />交易前核验</span>

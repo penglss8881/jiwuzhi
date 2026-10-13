@@ -7,6 +7,7 @@ import { useVisiblePoll, useAction } from './composables.js'
 import { pages } from './router.js'
 import Icon from './components/Icon.vue'
 import Modal from './components/Modal.vue'
+import UserAvatar from './components/UserAvatar.vue'
 const route = useRoute(), router = useRouter()
 const mobile = ref(false), search = ref(''), unread = ref(0), pending = ref(0), friendPending = ref(0), passwordOpen = ref(false)
 const refreshKey = ref(0), refreshing = ref(false)
@@ -31,8 +32,9 @@ const updateBadges = useVisiblePoll(async () => {
 watch(() => route.fullPath, () => { mobile.value = false })
 watch(user, value => { unread.value = 0; pending.value = 0; friendPending.value = 0; if (value) updateBadges(); else if (!route.meta.public) router.replace('/login') })
 const badgeEvent = () => updateBadges()
-onMounted(() => { window.addEventListener('unread-updated', badgeEvent); window.addEventListener('rentals-updated', badgeEvent); window.addEventListener('friends-updated', badgeEvent) })
-onUnmounted(() => { window.removeEventListener('unread-updated', badgeEvent); window.removeEventListener('rentals-updated', badgeEvent); window.removeEventListener('friends-updated', badgeEvent) })
+const dismissNavigation = event => { if (event.key === 'Escape') mobile.value = false }
+onMounted(() => { window.addEventListener('unread-updated', badgeEvent); window.addEventListener('rentals-updated', badgeEvent); window.addEventListener('friends-updated', badgeEvent); window.addEventListener('keydown', dismissNavigation) })
+onUnmounted(() => { window.removeEventListener('unread-updated', badgeEvent); window.removeEventListener('rentals-updated', badgeEvent); window.removeEventListener('friends-updated', badgeEvent); window.removeEventListener('keydown', dismissNavigation) })
 function logout() { setUser(null); passwordOpen.value = false; router.replace('/login') }
 function prefetch(key) { if (!navigator.connection?.saveData) pages[key]?.().catch(() => {}) }
 function refreshCurrent() {
@@ -51,17 +53,19 @@ async function changePassword() {
   <a href="#main" class="skip-link">跳到主要内容</a>
   <div v-if="user && route.path !== '/login'" class="app-shell">
     <div v-if="mobile" class="nav-shade" @click="mobile = false"></div>
-    <aside class="sidebar" :class="{ open: mobile }" aria-label="主导航">
+    <aside id="main-navigation" class="sidebar" :class="{ open: mobile }" aria-label="主导航">
+      <button class="icon-btn sidebar-close" aria-label="关闭导航" @click="mobile = false"><Icon name="close" :size="18" /></button>
       <RouterLink to="/" class="brand">
         <span class="brand-mark">
           <Icon name="spark" :size="24" />
         </span>
         <span>
           集物志
-          <small>好物有去处，观点有回响</small>
+          <small>JIWUZHI / CAMPUS ARCHIVE</small>
         </span>
       </RouterLink>
-      <div class="nav-caption">探索与发现</div>
+      <div class="sidebar-edition"><span>校园生活交换站</span><span aria-hidden="true">+ + +</span></div>
+      <div class="nav-caption">01 / 探索与发现</div>
       <nav>
         <RouterLink v-for="(n, i) in nav" :key="n.path" :to="n.path" class="nav-link" :class="{ selected: route.path === n.path, 'nav-gap': i === 3 }" @mouseenter="prefetch(n.key)" @focus="prefetch(n.key)">
           <Icon :name="n.icon" />
@@ -69,7 +73,7 @@ async function changePassword() {
           <span v-if="(n.key === 'chat' && (unread + friendPending)) || (n.key === 'rentals' && pending)" class="badge-count">{{ Math.min(99, n.key === 'chat' ? unread + friendPending : pending) }}</span>
         </RouterLink>
       </nav>
-      <div class="nav-caption">更多服务</div>
+      <div class="nav-caption">02 / 个人档案</div>
       <RouterLink to="/profile" class="nav-link" :class="{ selected: route.path === '/profile' }">
         <Icon name="user" />
         <span>个人中心</span>
@@ -80,7 +84,7 @@ async function changePassword() {
       </RouterLink>
       <div class="sidebar-bottom">
         <div class="eco-note">
-          <Icon name="leaf" />
+          <span class="archive-caption">RE:CIRCULATE</span>
           <strong>分享，也是一种连接</strong>
           <p>
             分享真实经验
@@ -94,7 +98,7 @@ async function changePassword() {
         </div>
         <div class="sidebar-account">
           <RouterLink to="/profile" class="account-link">
-            <span class="avatar"><img v-if="user.avatarUrl" :src="user.avatarUrl" alt="" /><template v-else>{{ displayName.slice(0, 1) }}</template></span>
+            <UserAvatar :person="user" :name="displayName" />
             <span>
               <strong>{{ displayName }}</strong>
               <small>{{ user.isAdmin ? '平台管理员' : '集物志社区成员' }}</small>
@@ -109,10 +113,10 @@ async function changePassword() {
     <div class="workspace">
       <header class="topbar">
         <div class="breadcrumb">
-          <button class="icon-btn mobile-menu" aria-label="打开导航" @click="mobile = !mobile">
+          <button class="icon-btn mobile-menu" aria-label="打开导航" :aria-expanded="mobile" aria-controls="main-navigation" @click="mobile = !mobile">
             <Icon name="menu" />
           </button>
-          <span class="muted">集物志</span>
+          <span class="muted breadcrumb-brand">集物志 <small>JIWUZHI</small></span>
           <Icon name="next" :size="14" />
           <strong>{{ route.meta.title }}</strong>
         </div>
@@ -144,8 +148,8 @@ async function changePassword() {
         </RouterView>
       </main>
       <footer class="site-footer">
-        <span>集物志 JIWUZHI · 好物有去处，观点有回响</span>
-        <span>真实分享 · 友善交易</span>
+        <span>集物志 JIWUZHI <span class="footer-divider">/</span> 好物有去处，观点有回响</span>
+        <span>SHARE · CONNECT · RECIRCULATE</span>
       </footer>
     </div>
   </div>

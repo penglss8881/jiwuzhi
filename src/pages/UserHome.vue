@@ -8,6 +8,7 @@ import { dateText, goBack } from '../utils.js'
 import Icon from '../components/Icon.vue'
 import ItemCard from '../components/ItemCard.vue'
 import StatePanel from '../components/StatePanel.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 import Pagination from '../components/Pagination.vue'
 const route = useRoute(), router = useRouter(), tab = ref('items'), page = ref(1)
 const uid = computed(() => String(route.params.userId))
@@ -43,7 +44,7 @@ watch(tab, () => { page.value = 1 })
       <section class="public-profile panel">
         <div class="profile-cover"><span>GOOD THINGS & EVERYDAY MOMENTS</span></div>
         <div class="public-profile-info">
-          <span class="avatar profile-portrait"><img v-if="person.avatarUrl" :src="person.avatarUrl" alt="用户头像" /><template v-else>{{ person.name.slice(0, 1) }}</template></span>
+          <UserAvatar class="profile-portrait" :person="person" alt="用户头像" />
           <div class="profile-identity"><div class="eyebrow">{{ own ? '我的主页' : 'TA 的主页' }}</div><h1>{{ person.name }}</h1><p>{{ person.signature || '把喜欢的好物，分享给同样喜欢的人。' }}</p></div>
           <div v-if="!own" class="profile-actions">
             <button v-if="friend.data.value.status === 'none'" class="btn primary" :disabled="friendBusy" @click="addFriend"><Icon name="userPlus" :size="18" />加好友</button>

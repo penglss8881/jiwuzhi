@@ -6,3 +6,6 @@ test-results/
 playwright-report/
 react-backup-20261008/
 uploads/
+
+.tmp-*
+.vscode/

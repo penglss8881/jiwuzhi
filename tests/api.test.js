@@ -1,7 +1,7 @@
 import { test, beforeEach, afterEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { apiFetch, apiUrl, clearCache } from '../src/api.js'
-import { dateText, dateTimestamp } from '../src/utils.js'
+import { avatarUrl, dateText, dateTimestamp } from '../src/utils.js'
 const savedFetch = globalThis.fetch
 const storage = new Map()
 globalThis.localStorage = { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) }
@@ -18,6 +18,16 @@ test('prefixes only known API roots', () => {
 test('formats UTC and database timestamps consistently in China time', () => {
   assert.equal(dateText('2026-10-10T00:00:00.000Z'), '2026-10-10 08:00')
   assert.equal(dateTimestamp('2026-10-10 08:00:00'), Date.parse('2026-10-10T00:00:00.000Z'))
+})
+test('avatar URLs stay rooted on nested pages and preserve uploaded previews', () => {
+  assert.equal(avatarUrl(' uploads/avatar.png '), '/uploads/avatar.png')
+  assert.equal(avatarUrl('./uploads/avatar.png'), '/uploads/avatar.png')
+  assert.equal(avatarUrl('/uploads/avatar.png'), '/uploads/avatar.png')
+  assert.equal(avatarUrl('https://example.com/avatar.png'), 'https://example.com/avatar.png')
+  assert.equal(avatarUrl('blob:http://localhost/preview'), 'blob:http://localhost/preview')
+  assert.equal(avatarUrl('data:image/png;base64,abc'), 'data:image/png;base64,abc')
+  assert.equal(avatarUrl(null), '')
+  assert.equal(avatarUrl(''), '')
 })
 test('deduplicates concurrent reads and returns isolated cached copies', async () => {
   let calls = 0

@@ -10,6 +10,7 @@ import Cover from '../components/Cover.vue'
 import Modal from '../components/Modal.vue'
 import Comments from '../components/Comments.vue'
 import StatePanel from '../components/StatePanel.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 const route = useRoute(), router = useRouter()
 const { data: item, loading, error, load } = useResource(() => `/items/${route.params.itemId}`, null, 0)
 const { busy, error: formError, run } = useAction()
@@ -52,7 +53,7 @@ async function submit() {
           </div>
           <p v-else class="notice">卖家尚未确认商品售价，暂不可购买。</p>
           <RouterLink :to="`/users/${item.ownerId}`" class="seller-line" aria-label="查看卖家主页">
-            <span class="avatar">{{ (item.ownerName || '用户').slice(0, 1) }}</span>
+            <UserAvatar :person="{ userId: item.ownerId, name: item.ownerName, avatarUrl: item.ownerAvatar }" />
             <div>
               <strong>{{ item.ownerName || '用户' }}</strong>
               <small>{{ item.ownerSignature || '让每一件好物，都有下一段故事。' }}</small>
