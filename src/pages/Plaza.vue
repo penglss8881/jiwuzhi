@@ -108,8 +108,8 @@ const icons = ['book', 'pen', 'monitor', 'coffee', 'sport', 'box']
       </div>
     </section>
     <section v-if="scope === 'users'" class="people-results">
-      <p class="muted">按完整账号、昵称或名称精确匹配。点击用户进入主页，查看好物和动态。</p>
-      <StatePanel :loading="peopleLoading" :error="peopleError" :empty="!people.length" :title="queryText ? '没有找到完全匹配的用户' : '想找谁？在上方输入账号或昵称'" description="昵称可能重复；知道对方账号时，使用完整账号更准确。" @retry="loadPeople(true)" />
+      <p class="muted">支持按账号、昵称、名称模糊搜索（输入一部分即可匹配）。点击用户进入主页，查看好物和动态。</p>
+      <StatePanel :loading="peopleLoading" :error="peopleError" :empty="!people.length" :title="queryText ? '没有找到相关用户' : '想找谁？在上方输入账号或昵称'" description="试试更短的关键词，或用账号、昵称的一部分来搜索。" @retry="loadPeople(true)" />
       <RouterLink v-for="person in (!peopleLoading && !peopleError ? people : [])" :key="person.userId" :to="`/users/${person.userId}`" class="panel person-result">
         <UserAvatar :person="person" />
         <div><h2>{{ person.name }}</h2><small v-if="person.accountNo">账号 {{ person.accountNo }}</small><p>{{ person.signature || '来我的主页，看看好物与生活。' }}</p></div>

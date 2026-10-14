@@ -38,10 +38,17 @@ test('purchase-only marketplace and public profiles (real MySQL)', async t => {
       const old = await query(`INSERT INTO items (owner_id, title, category, price, buyout_enabled) VALUES (?, ?, '图书', 2, 0)`, [seller, `${marker}_old`])
       oldItemId = Number(old.rows.insertId)
     })
-    await t.test('exact search, no fuzzy leakage, inactive users and authentication', async () => {
+    await t.test('fuzzy user search matches partial keywords, keeps account privacy, excludes inactive users', async () => {
+      // 完整昵称：精确命中且排在第一位
       const people = await call(`/users/search?q=${names[0]}`)
-      assert.deepEqual(people.map(p => p.userId), [seller])
-      assert.deepEqual(await call(`/users/search?q=${marker}`), [])
+      assert.equal(people[0].userId, seller)
+      // 模糊搜索：共同前缀命中其余活跃用户（搜索者自己与 inactive 被过滤）
+      const partial = await call(`/users/search?q=${marker}`, { who: seller })
+      assert.deepEqual(partial.map(p => p.userId), [buyer])
+      // 账号隐私：只有完全匹配账号时才返回 accountNo，其余为空
+      assert.ok(partial.every(p => p.accountNo === ''))
+      assert.equal((await call(`/users/search?q=${names[0]}`))[0].accountNo, names[0])
+      // 停用用户即使完全匹配也不返回
       assert.deepEqual(await call(`/users/search?q=${names[2]}`), [])
       await call('/users/search?q=x', { who: null, status: 401 })
     })

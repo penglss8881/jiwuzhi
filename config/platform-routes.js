@@ -1136,18 +1136,22 @@ platformRouter.get('/refunds/disputes', requireAuth, async (req, res) => {
 // Exact lookup by account, nickname, or registered name. Return only active public profile fields.
 platformRouter.get('/users/search', requireAuth, async (req, res) => {
   const q = String(req.query.q || '').trim()
-  if (!q) return res.status(400).json({ message: '请输入完整账号或名称' })
+  if (!q) return res.status(400).json({ message: '请输入搜索关键词' })
   if (q.length > 100) return res.status(400).json({ message: '查找内容过长' })
   try {
+    // 模糊搜索：账号、昵称、名称任意部分匹配；转义 LIKE 通配符防止注入语义
+    const escaped = q.replace(/([\\%_])/g, '\\$1')
+    const like = `%${escaped}%`
+    const prefix = `${escaped}%`
     const { rows } = await query(
       `SELECT user_id,
               CASE WHEN BINARY account_no = BINARY ? THEN account_no ELSE '' END AS account_no,
               name, nickname, avatar_url, signature
        FROM users
        WHERE status = 'active' AND user_id <> ?
-         AND (BINARY account_no = BINARY ? OR BINARY COALESCE(nickname, '') = BINARY ? OR BINARY name = BINARY ?)
-       ORDER BY user_id ASC LIMIT 20`,
-      [q, req.user.userId, q, q, q]
+         AND (account_no LIKE ? OR COALESCE(nickname, '') LIKE ? OR name LIKE ?)
+       ORDER BY (BINARY account_no = BINARY ?) DESC, (account_no LIKE ?) DESC, user_id ASC LIMIT 20`,
+      [q, req.user.userId, like, like, like, q, prefix]
     )
     res.json(rows.map(row => ({
       userId: row.user_id,
